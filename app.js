@@ -1,6 +1,6 @@
 import express from "express";
 import 'dotenv/config.js';
-import { errorHandler } from "./middleware/errorHandler.js";
+import { errorHandler } from "./src/middleware/errorHandler.js";
 import {fileURLToPath} from "url";
 import path from "path";
 
