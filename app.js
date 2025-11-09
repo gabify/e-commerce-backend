@@ -1,11 +1,16 @@
 import express from "express";
 import 'dotenv/config.js';
+import { errorHandler } from "./middleware/errorHandler.js";
+import {fileURLToPath} from "url";
+import path from "path";
 
 //Routers
 import productRoutes from "./src/routers/ProductRoutes.js";
 
 //initialize the app
 const app = express();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 //add Middlewares here
 app.use(express.json());
@@ -27,6 +32,12 @@ try{
 }
 
 app.use('/product', productRoutes);
+
+//server upload folder
+app.use('/product/thumbnails', express.static(path.join(__dirname, "thumbnails")))
+
+//Global error handler
+app.use(errorHandler);
 
 
 //if no request matches the endpoints from the user
