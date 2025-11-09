@@ -1,7 +1,75 @@
 import pool from '../config/db.js';
 
-export const getProducts = async () =>{
-    const[rows] = await pool.query("SELECT * FROM product");
+export const getProducts = async (page= 1, limit = 10, category_id = 0, search='', price_range = 0) =>{
+    const offset = (page - 1) * limit;
+    let query = "SELECT * FROM product WHERE 1=1 ";
+    const params = [];
+
+    if(category_id > 0){
+        query += "AND category_id = ? ";
+        params.push(category_id);
+    }
+
+    if(search){
+        query += "AND name LIKE ? ";
+        params.push(`%${search}%`);
+    }
+
+    switch(price_range){
+        case 1:
+            query += "AND price < 500 ";
+            break;
+        case 2:
+            query += "AND price >= 500 AND price <= 1000 ";
+            break;
+        case 3:
+            query += "AND price > 1000";
+    }
+
+    query += "LIMIT ? OFFSET ?";
+    params.push(limit, offset);
+
+    const [rows] =  await pool.query(query, params);
+    return rows;
+}
+
+export const getProductCount = async (limit = 10, category_id = 0, search='', price_range = 0) =>{
+    let query = "SELECT COUNT(*) AS total FROM product WHERE 1=1 ";
+    const params = [];
+
+    if(category_id > 0){
+        query += "AND category_id = ? ";
+        params.push(category_id);
+    }
+
+    if(search){
+        query += "AND name LIKE ? ";
+        params.push(`%${search}%`);
+    }
+
+    switch(price_range){
+        case 1:
+            query += "AND price < 500 ";
+            break;
+        case 2:
+            query += "AND price >= 500 AND price <= 1000 ";
+            break;
+        case 3:
+            query += "AND price > 1000";
+    }
+
+    const [[{total}]] = await pool.query(query, params);
+    return total;
+}
+
+export const getProductById = async(id = -1) =>{
+    if(id === -1){
+        const error = new Error('Invalid id');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const [rows] = await pool.query("SELECT * FROM product WHERE id = ?", [id]);
     return rows;
 }
 
