@@ -33,7 +33,7 @@ export const getProducts = async (page= 1, limit = 10, category_id = 0, search='
     return rows;
 }
 
-export const getProductCount = async (limit = 10, category_id = 0, search='', price_range = 0) =>{
+export const getProductCount = async (category_id = 0, search='', price_range = 0) =>{
     let query = "SELECT COUNT(*) AS total FROM product WHERE 1=1 ";
     const params = [];
 
@@ -63,14 +63,14 @@ export const getProductCount = async (limit = 10, category_id = 0, search='', pr
 }
 
 export const getProductById = async(id = -1) =>{
-    if(id === -1){
+    if(id === -1 || id == NaN){
         const error = new Error('Invalid id');
         error.statusCode = 400;
         throw error;
     }
 
     const [rows] = await pool.query("SELECT * FROM product WHERE id = ?", [id]);
-    return rows;
+    return rows[0];
 }
 
 export const insertProduct = async (product) =>{
