@@ -68,6 +68,30 @@ export const insertCategory = async(name, description) =>{
 }
 
 //Update queries
+export const updateCategory = async(name= '', description= '', id= -1) =>{
+    if(id === -1 || id == NaN){
+        const error = new Error('Invalid id');
+        error.statusCode = 400;
+        throw error;
+    }   
+
+     //check if category exist
+    const category = await getCategoryById(id);
+    if(!category){
+        const error = new Error(`No category found with id: ${id}`);
+        error.statusCode = 404;
+        throw error;
+    }
+
+    console.log(category)
+
+    let new_name = name || category.category_name;
+    let new_desc = description || category.category_desc;
+    
+
+    const [result] = await pool.query("UPDATE category SET category_name = ?, category_desc = ? WHERE id = ?", [new_name, new_desc, id]);
+    return result.affectedRows;
+}
 
 //Delete queries
 export const updateAsInactive = async (id = -1) =>{

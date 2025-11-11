@@ -49,6 +49,22 @@ export const createCategory = async(req, res, next) => {
     }
 }
 
+//Update category
+
+export const updateCategory = async (req, res, next) =>{
+    const id = parseInt(req.params.id);
+
+    const { name, description } = req.body;
+
+    try{
+        const updatedCategory = await categoryModel.updateCategory(name, description, id);
+        res.status(200).json({success: true, message: [{updatedCategory}]})
+    }catch(err){
+        console.log(err);
+        next(err);
+    }
+}
+
 //Delete category
 export const removeCategoryById = async (req, res, next) =>{
     const id = parseInt(req.params.id) || -1;
