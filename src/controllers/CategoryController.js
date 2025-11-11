@@ -21,12 +21,13 @@ export const fetchCategoryById = async(req, res, next) =>{
 
     try{
         const category = await categoryModel.getCategoryById(id);
-        res.status(200).json({
-            success: true,
-            message: [
-                category
-            ]
-        })
+
+        if(category){
+            res.status(200).json({success: true, message: [category]})
+        }else{
+            res.status(404).json({success: false, message: `Category with id: ${id} is not found`})
+        }
+
     }catch(err){
         console.log(err);
         next(err);
@@ -45,5 +46,18 @@ export const createCategory = async(req, res, next) => {
         })
     }catch(err){
         next(err)
+    }
+}
+
+//Delete category
+export const removeCategoryById = async (req, res, next) =>{
+    const id = parseInt(req.params.id) || -1;
+
+    try{
+        const deletedCategory = await categoryModel.updateAsInactive(id);
+        res.status(200).json({success: true, message: [{deletedCategory}]});
+    }catch(err){
+        console.log(err);
+        next(err);
     }
 }
