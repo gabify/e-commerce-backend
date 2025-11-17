@@ -1,8 +1,9 @@
 import pool from '../config/db.js';
 
+//fetch operation
 export const getProducts = async (page= 1, limit = 10, category_id = 0, search='', price_range = 0) =>{
     const offset = (page - 1) * limit;
-    let query = "SELECT * FROM product WHERE 1=1 ";
+    let query = "SELECT * FROM product WHERE is_active = 1 ";
     const params = [];
 
     if(category_id > 0){
@@ -34,7 +35,7 @@ export const getProducts = async (page= 1, limit = 10, category_id = 0, search='
 }
 
 export const getProductCount = async (category_id = 0, search='', price_range = 0) =>{
-    let query = "SELECT COUNT(*) AS total FROM product WHERE 1=1 ";
+    let query = "SELECT COUNT(*) AS total FROM product WHERE is_active = 1 ";
     const params = [];
 
     if(category_id > 0){
@@ -73,6 +74,8 @@ export const getProductById = async(id = -1) =>{
     return rows[0];
 }
 
+//Insert operation
+
 export const insertProduct = async (product) =>{
     if(product.name == ''){
         const error = new Error('Invalid value');
@@ -99,4 +102,68 @@ export const insertProduct = async (product) =>{
     );
 
     return result.insertId;
+}
+
+//Update operation
+
+export const updateProduct = async (newProduct = {}, id= -1) =>{
+    if(id === -1 || Number.isNaN(id)){
+        const error = new Error('Invalid id');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    //check if product exist
+    const product = await getProductById(id);
+    if(!product){
+        const error = new Error(`No product found with id: ${id}`);
+        error.statusCode = 404;
+        throw error;
+    }
+
+    const fields = [];
+    const values = [];
+
+    const allowedFields = ["name", "description", "price", "stock_quantity", "category_id", "thumbnail"];
+
+    for(const key of allowedFields){
+        if(newProduct[key] !== undefined){
+            fields.push(`${key} = ?`);
+            values.push(newProduct[key]);
+        }
+    }
+
+    if(fields.length === 0){
+        const error = new Error("No valid fields to update.");
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const query = `UPDATE product SET ${fields.join(", ")} WHERE id = ?`
+    values.push(id);
+
+    const [result] = await pool.query(query, values);
+    return result.affectedRows;
+}
+
+
+//Delete operation
+
+export const deleteProduct = async (id) =>{
+    if(id === -1 || id == NaN){
+        const error = new Error('Invalid id');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    //check if product exist
+    const product = await getProductById(id);
+    if(!product){
+        const error = new Error(`No product found with id: ${id}`);
+        error.statusCode = 404;
+        throw error;
+    }
+
+    const [result] = await pool.query("UPDATE product SET is_active = 0 WHERE id = ?", [id]);
+    return result.affectedRows;
 }

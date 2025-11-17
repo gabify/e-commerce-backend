@@ -61,12 +61,54 @@ export const createProduct = async (req, res, next) =>{
         res.status(200).json({
           success: true, 
           message: [
-            {text: "Product created successfully",},
+            {result: "Product created successfully",},
             {id: insertId},
             {thumbnail_url: file ? `/product/thumbnails/${file.filename}` : null}
           ] 
         });
 
+    }catch(e){
+        next(e);
+    }
+}
+
+export const editProduct = async (req, res, next) =>{
+    try{   
+        const productId = parseInt(req.params.id);
+        const file = req.file;
+
+        const newProduct = {
+            name: req.body.name,
+            description: req.body.description,
+            price: req.body.price,
+            stock_quantity: req.body.stock_quantity,
+            category_id: req.body.category_id,
+            thumbnail: file ? file.filename : undefined
+        }
+
+        const updatedProduct = await ProductModel.updateProduct(newProduct, productId);
+        res.status(200).json({
+            success: true,
+            message: [
+                {result: `Product with ID: ${productId} has been updated.`},
+            ]
+        })
+    }catch(e){
+        next(e)
+    }
+}
+
+export const deleteProduct = async (req, res, next) =>{
+    try{
+        const id = parseInt(req.params.id);
+
+        const deletedId = await ProductModel.deleteProduct(id);
+        res.status(200).json({
+            success: true,
+            message: [
+                {result: `Product with ID: ${id} has been deleted.`},
+            ]
+        })
     }catch(e){
         next(e);
     }
