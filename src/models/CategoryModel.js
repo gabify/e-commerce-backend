@@ -22,7 +22,7 @@ export const getCategory = async(page = 1, limit = 10, search = '') =>{
 }
 
 export const getCategoryCount = async (search='') =>{
-    let query = "SELECT COUNT(*) AS total FROM category WHERE 1=1 ";
+    let query = "SELECT COUNT(*) AS total FROM category WHERE is_active = 1 ";
     const params = [];
 
     if(search){
@@ -82,8 +82,6 @@ export const updateCategory = async(name= '', description= '', id= -1) =>{
         error.statusCode = 404;
         throw error;
     }
-
-    console.log(category)
 
     let new_name = name || category.category_name;
     let new_desc = description || category.category_desc;

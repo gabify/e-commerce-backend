@@ -3,6 +3,7 @@ import 'dotenv/config.js';
 import { errorHandler } from "./src/middleware/errorHandler.js";
 import {fileURLToPath} from "url";
 import path from "path";
+import cors from "cors";
 
 //Routers
 import productRoutes from "./src/routers/ProductRoutes.js";
@@ -13,8 +14,14 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+//Enable cors to frontend
+let corsOptions = {
+    origin: process.env.ORIGIN
+}
+
 //add Middlewares here
 app.use(express.json());
+app.use(cors(corsOptions));
 
 //This is used to log the request on the console
 app.use((req, res, next) =>{
