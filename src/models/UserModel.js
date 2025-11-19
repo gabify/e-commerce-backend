@@ -1,7 +1,7 @@
 import pool from "../config/db.js";
 import validator from "validator";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import tokenGenerator from "../utils/tokenGenerator.js";
 
 export const getUser = async (id) =>{
     if(parseInt(id) === NaN){
@@ -48,22 +48,28 @@ export const createUser = async (name, email, password) =>{
 }
 
 export const login = async (email, password) =>{
-    if(email === '' || password === ''){
-        throw new Error('Email and Password is required');
+    if(email.trim() === '' || password.trim() === ''){
+        const error = new Error('Email and password is required.')
+        error.statusCode = 400;
+        throw error;
     }
 
     const [user] = await pool.query("SELECT * FROM user WHERE email = ?", [email]);
 
     if(user.length === 0){
-        throw new Error(`An acccount with email: ${email} does not exist.`);
+       const error = new Error(`An account with the email: ${email} does not exist.`)
+        error.statusCode = 400;
+        throw error;
     }
 
     if(!bcrypt.compareSync(password, user[0].password)){
-        throw new Error('Incorrect password');
+        const error = new Error('Incorrect password.')
+        error.statusCode = 400;
+        throw error;
     }
 
     //generate token
-    const token = jwt.sign({id: user[0].id}, process.env.SECRET, {expiresIn: '1d'});
+    const token = tokenGenerator(user[0].id)
 
     return token;
 }

@@ -61,9 +61,10 @@ export const createProduct = async (req, res, next) =>{
         res.status(200).json({
           success: true, 
           message: [
-            {result: "Product created successfully",},
-            {id: insertId},
-            {thumbnail_url: file ? `/product/thumbnails/${file.filename}` : null}
+            {result: "Product created successfully", 
+                id: insertId, 
+                thumbnail_url: file ? `/product/thumbnails/${file.filename}` : null
+            },
           ] 
         });
 

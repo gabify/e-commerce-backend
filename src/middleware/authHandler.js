@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import * as UserModel from "../models/UserModel.js";
 
-const checkToken = async(req, res, next) =>{
+const authHandler = async(req, res, next) =>{
     const {authorization} = req.headers;
     if(!authorization){
         res.status(401).json({
@@ -16,7 +16,8 @@ const checkToken = async(req, res, next) =>{
     try{
         const {id} = jwt.verify(token, process.env.SECRET);
         const [user] = await UserModel.getUser(id);
-        console.log(jwt.verify(token, process.env.SECRET))
+        req.user = user.id;
+
         next();
     }catch(err){
         res.status(401).json({
@@ -28,4 +29,4 @@ const checkToken = async(req, res, next) =>{
     }
 }
 
-export default checkToken;
+export default authHandler;
