@@ -8,6 +8,7 @@ import cors from "cors";
 //Routers
 import productRoutes from "./src/routers/ProductRoutes.js";
 import categoryRouters from "./src/routers/CategoryRoutes.js";
+import userRoutes from "./src/routers/UserRoutes.js";
 
 //initialize the app
 const app = express();
@@ -41,6 +42,7 @@ try{
 
 app.use('/product', productRoutes);
 app.use('/category', categoryRouters);
+app.use('/user', userRoutes);
 
 //server upload folder
 app.use('/product/thumbnails', express.static(path.join(__dirname, "thumbnails")))
