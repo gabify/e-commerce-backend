@@ -9,7 +9,7 @@ export const getUser = async (id) =>{
     }
 
     const [user] = await pool.query('SELECT * FROM user WHERE id = ?', [id]);
-    return user;
+    return user[0];
 }
 
 export const createUser = async (name, email, password) =>{
