@@ -1,0 +1,102 @@
+import pool from "../config/db.js";
+import { getProductById } from "./ProductModel.js";
+import { getUser } from "./UserModel.js";
+import generateException from "../utils/exceptionGenerator.js";
+
+const getCartByProductAndUser = async (productId= -1, userId = -1) =>{
+    const pId =  Number(productId);
+    const uId = Number(userId);
+    
+    if(!Number.isInteger(pId) || pId < 1){
+        generateException('TypeError', 'Invalid product id.', 400);
+    }
+
+    if(!Number.isInteger(uId) || uId < 1){
+        generateException('TypeError', 'Invalid user id.', 400);
+    }
+
+    const [item] = await pool.query('SELECT * FROM cart WHERE product_id = ? AND user_id = ?', [pId, uId]);
+
+    return item.length > 0 ? item[0] : null;
+}
+
+const getCartItems = async(id = -1) =>{
+    const userId = Number(id);
+    if(!Number.isInteger(userId) || userId < 1){
+        generateException('TypeError', 'Invalid user id.', 400);
+    }
+
+     //check if user exist
+    const user = await getUser(userId);
+    if(!user){
+        generateException('Error', 'User not found.', 400);
+    }
+
+    const [items] = await pool.query(
+        `SELECT cart.id AS cart_id, 
+        cart.product_id,
+        cart.quantity,
+        product.name,
+        product.price,
+        product.thumbnail,
+        product.stock_quantity
+        FROM cart 
+        JOIN product ON product.id = cart.product_id 
+        WHERE cart.user_id = ?`, 
+    [userId]);
+
+    return items;
+}
+
+export const addItemToCart = async(productId, userId, quantity) =>{
+    productId = parseInt(productId);
+    userId = parseInt(userId);
+    quantity = parseInt(quantity);
+
+    //check if productId, userId and quantity is valid
+    if(isNaN(productId) || isNaN(userId) || isNaN(quantity)){
+        generateException('TypeError', 'Incomplete details. Please complete the details before adding items to cart.', 400);
+    }
+
+    //check if product exist
+    const product = await getProductById(productId);
+    if(!product){
+        generateException('Error', 'Product not found', 404);
+    }
+
+    //check if product has enough stock
+    if(quantity < 1 || quantity > product.stock_quantity){
+        generateException('Error', 'Insufficient stock.', 400);
+    }
+
+    //check if user exist
+    const user = await getUser(userId);
+    if(!user){
+        generateException('Error', 'User not found.', 400);
+    }
+
+    //check if product already exist in the user cart
+    const cartItem = await getCartByProductAndUser(productId, userId);
+
+    if(cartItem){
+
+        //check if total quantity does not exceed the stock
+        if((cartItem.quantity + quantity) > product.stock_quantity){
+            generateException('Error', 'Insufficient stock', 400);
+        }
+
+        //Add quantiy if product exist in the cart
+        await pool.query("UPDATE cart SET quantity = quantity + ? WHERE product_id = ? AND user_id = ?", 
+            [quantity, productId, userId]);
+
+    }else{
+        //Add new product to cart
+        await pool.query("INSERT INTO cart(user_id, product_id, quantity) VALUES(?,?,?)", 
+        [userId, productId, quantity])
+    }
+
+    return await getCartItems(userId);
+
+
+}
+

@@ -1,11 +1,11 @@
 import express from 'express';
 import * as ProductController from '../controllers/ProductController.js';
 import imageUploadHandler from '../middleware/imageUploadHandler.js';
-import checkToken from "../middleware/authenticationHandler.js";
+import authHandler from '../middleware/authHandler.js';
 
 const productRouter = express.Router();
 
-productRouter.use(checkToken);
+productRouter.use(authHandler);
 productRouter.get('/all', ProductController.fetchProducts);
 productRouter.get('/all/count', ProductController.fetchProductCount);
 productRouter.get('/:id', ProductController.fetchProductById);  

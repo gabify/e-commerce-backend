@@ -1,7 +1,7 @@
 import pool from "../config/db.js";
 import validator from "validator";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import tokenGenerator from "../utils/tokenGenerator.js";
 
 export const getUser = async (id) =>{
     if(parseInt(id) === NaN){
@@ -9,7 +9,7 @@ export const getUser = async (id) =>{
     }
 
     const [user] = await pool.query('SELECT * FROM user WHERE id = ?', [id]);
-    return user;
+    return user[0];
 }
 
 export const createUser = async (name, email, password) =>{
@@ -62,8 +62,6 @@ export const login = async (email, password) =>{
         throw new Error('Incorrect password');
     }
 
-    //generate token
-    const token = jwt.sign({id: user[0].id}, process.env.SECRET, {expiresIn: '1d'});
-
-    return token;
+    //generate and return token
+    return tokenGenerator(user[0].id);
 }
