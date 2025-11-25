@@ -2,8 +2,9 @@ import pool from "../config/db.js";
 import validator from "validator";
 import bcrypt from "bcryptjs";
 import tokenGenerator from "../utils/tokenGenerator.js";
+import generateException from "../utils/exceptionGenerator.js";
 
-export const getUser = async (id) =>{
+const getUser = async (id) =>{
     if(parseInt(id) === NaN){
         throw new Error('Invalid id');
     }
@@ -64,4 +65,22 @@ export const login = async (email, password) =>{
 
     //generate and return token
     return tokenGenerator(user[0].id);
+}
+
+
+//check if user exist 
+
+export const doesUserExist = async (id = -1) =>{
+    const userId = Number(id);
+    if(!Number.isInteger(userId) || userId < 1){
+        generateException('TypeError', 'Invalid user id.', 400);
+    }
+
+    //check if user exist
+    const user = await getUser(userId);
+    if(!user){
+        generateException('Error', 'User not found.', 404);
+    }
+
+    return true;
 }
