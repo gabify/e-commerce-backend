@@ -38,10 +38,30 @@ export const updateCartItem = async(req, res, next) => {
         const cart = await CartModel.updateCartItem(userId, cartId, quantity);
         res.status(200).json({
             success: true,
-            message: cart
+            message: [
+                {result : "Cart item has been updated"},
+                cart
+            ]
         });
     }catch(e){
         next(e);
     }
 
+}
+
+export const deleteCartItem = async(req, res, next) =>{
+    const {userId, cartId} = req.body;
+
+    try{
+        const cart = await CartModel.deleteCartItem(userId, cartId);
+        res.status(200).json({
+            success: true,
+            message: [
+                {result: "Cart item has been deleted"},
+                cart
+            ]
+        })
+    }catch(e){
+        next(e);
+    }
 }
