@@ -132,3 +132,28 @@ export const updateCartItem = async(userId = -1, cartId = -1, quantity = -1) =>{
 
     return getCartItems(uId);
 }
+
+export const deleteCartItem = async(userId, cartId) =>{
+    const uId = parseInt(userId);
+    const cId = parseInt(cartId);
+
+    if(!Number.isInteger(uId) || uId < 1){
+        generateException('TypeError', 'Invalid user id.', 400);
+    }
+
+    if(!Number.isInteger(cId) || cId < 1){
+        generateException('TypeError', 'Invalid cart id.', 400);
+    }
+    
+    await doesUserExist(uId);
+
+    const [item] = await pool.query("SELECT * FROM cart WHERE id = ? AND user_id = ?", [cId, uId]);
+    
+    if(item.length === 0){
+        generateException('Error', 'Cart item not found.', 404);
+    }
+
+    await pool.query("DELETE FROM cart WHERE id = ? AND user_id = ?", [cId, uId]);
+
+    return getCartItems(uId);
+}
