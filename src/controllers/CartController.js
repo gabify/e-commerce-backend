@@ -16,3 +16,17 @@ export const addToCart = async (req, res, next) => {
         next(e);
     }
 }
+
+export const getCart = async (req, res, next) =>{
+    const userId = req.params.id;
+
+    try{
+        const cart = await CartModel.getCartItems(userId);
+        res.status(200).json({
+            success: true,
+            message: cart
+        })
+    }catch(e){
+        next(e);
+    }
+}

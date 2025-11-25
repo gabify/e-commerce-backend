@@ -20,7 +20,7 @@ const getCartByProductAndUser = async (productId= -1, userId = -1) =>{
     return item.length > 0 ? item[0] : null;
 }
 
-const getCartItems = async(id = -1) =>{
+export const getCartItems = async(id = -1) =>{
     const userId = Number(id);
     if(!Number.isInteger(userId) || userId < 1){
         generateException('TypeError', 'Invalid user id.', 400);
