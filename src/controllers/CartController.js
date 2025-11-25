@@ -30,3 +30,18 @@ export const getCart = async (req, res, next) =>{
         next(e);
     }
 }
+
+export const updateCartItem = async(req, res, next) => {
+    const {userId, cartId, quantity} = req.body;
+
+    try{
+        const cart = await CartModel.updateCartItem(userId, cartId, quantity);
+        res.status(200).json({
+            success: true,
+            message: cart
+        });
+    }catch(e){
+        next(e);
+    }
+
+}
