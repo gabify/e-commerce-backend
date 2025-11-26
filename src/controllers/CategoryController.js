@@ -9,7 +9,7 @@ export const fetchCategory = async(req, res) =>{
     //get Connection
     const conn = await connect();
     const categories = await categoryModel.getCategory(page, limit, search, conn);
-    await conn.end();
+    conn.release();
     res.status(200).json({success: true, message: categories});
 }
 
@@ -19,7 +19,7 @@ export const fetchCategoryCount = async (req, res) =>{
     //get Connection
     const conn = await connect();
     const total_categories = await categoryModel.getCategoryCount(search, conn);
-    await conn.end();
+    conn.release();
     res.status(200).json({success: true, message: [total_categories]})
 }
 
@@ -30,7 +30,7 @@ export const fetchCategoryById = async(req, res, next) =>{
     const conn = await connect();
     try{
         const category = await categoryModel.getCategoryById(id, conn);
-        await conn.end();
+        conn.release();
         if(category){
             res.status(200).json({success: true, message: [category]})
         }else{
@@ -39,7 +39,7 @@ export const fetchCategoryById = async(req, res, next) =>{
 
     }catch(err){
         console.log(err);
-        await conn.end();
+        conn.release();
         next(err);
     }
 }
@@ -51,14 +51,14 @@ export const createCategory = async(req, res, next) => {
     const conn = await connect();
     try{
         const id = await categoryModel.insertCategory(name, description, conn);
-        await conn.end();
+        conn.release();
         res.status(201).json({
             success: true,
             message: "New category successfully created",
             id
         })
     }catch(err){
-        await conn.end();
+        conn.release();
         next(err);
     }
 }
@@ -73,11 +73,11 @@ export const updateCategory = async (req, res, next) =>{
     const conn = await connect();
     try{
         const updatedCategory = await categoryModel.updateCategory(name, description, id, conn);
-        await conn.end();
+        conn.release();
         res.status(200).json({success: true, message: [{updatedCategory}]})
     }catch(err){
         console.log(err);
-        await conn.end();
+        conn.release();
         next(err);
     }
 }
@@ -90,11 +90,11 @@ export const removeCategoryById = async (req, res, next) =>{
     const conn = await connect();
     try{
         const deletedCategory = await categoryModel.updateAsInactive(id, conn);
-        await conn.end();
+        conn.release();
         res.status(200).json({success: true, message: [{deletedCategory}]});
     }catch(err){
         console.log(err);
-        await conn.end();
+        conn.release();
         next(err);
     }
 }

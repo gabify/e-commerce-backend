@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { doesUserExist } from "../models/UserModel.js";
+import connect from "../config/db.js";
 
 const authHandler = async(req, res, next) =>{
     const {authorization} = req.headers;
@@ -15,7 +16,9 @@ const authHandler = async(req, res, next) =>{
 
     try{
         const {id} = jwt.verify(token, process.env.SECRET);
-        await doesUserExist(id);
+        const conn = await connect();
+        await doesUserExist(id, conn);
+        conn.release();
         
         next();
     }catch(err){

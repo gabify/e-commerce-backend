@@ -8,7 +8,7 @@ export const register = async (req, res, next) =>{
     const conn = await connect();
     try{
         const user = await UserModel.createUser(name, email, password, conn);
-        await conn.end();
+        conn.release();
         res.status(201).json({
             success: true,
             message: [
@@ -16,7 +16,7 @@ export const register = async (req, res, next) =>{
             ]
         });
     }catch(e){
-        await conn.end();
+        conn.release();
         next(e);
     }
 }
@@ -28,7 +28,7 @@ export const login = async (req, res, next) =>{
     const conn = await connect();
     try{
         const token = await UserModel.login(email, password, conn);
-        await conn.end();
+        conn.release();
         res.status(200).json({
             success: true,
             message: [
@@ -37,7 +37,7 @@ export const login = async (req, res, next) =>{
             ]
         });
     }catch(e){
-        await conn.end();
+        conn.release();
         next(e);
     }
 }

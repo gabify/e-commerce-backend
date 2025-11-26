@@ -15,7 +15,7 @@ export const fetchProducts = async (req, res) =>{
         ProductModel.getProducts(page, limit, category_id, search, price_range, conn), 
         ProductModel.getProductCount(conn)
     ]);
-    await conn.end();
+    conn.release();
 
     res.status(200).json({
         success: true, 
@@ -35,7 +35,7 @@ export const fetchProductCount = async (req, res) =>{
     //get Connection
     const conn = await connect();
     const total_products = await ProductModel.getProductCount(limit, category_id, search, price_range, conn);
-    await conn.end();
+    conn.release();
     res.status(200).json({success: true, message: [total_products]})
 }
 
@@ -46,7 +46,7 @@ export const fetchProductById = async (req, res, next) =>{
     const conn = await connect();
     try{
         const product = await ProductModel.getProductById(id, conn);
-        await conn.end();
+        conn.release();
 
         if(product){
             res.status(200).json({success: true, message: [product]});
@@ -56,7 +56,7 @@ export const fetchProductById = async (req, res, next) =>{
 
     }catch(err){
         console.log(err);
-        await conn.end();
+        conn.release();
         next(err);
     }
 }
@@ -72,7 +72,7 @@ export const createProduct = async (req, res, next) =>{
         //get Connection
         const conn = await connect();
         const insertId = await ProductModel.insertProduct(product, conn);
-        await conn.end();
+        conn.release();
         res.status(200).json({
           success: true, 
           message: [
@@ -83,7 +83,7 @@ export const createProduct = async (req, res, next) =>{
         });
 
     }catch(e){
-        await conn.end();
+        conn.release();
         next(e);
     }
 }
@@ -105,7 +105,7 @@ export const editProduct = async (req, res, next) =>{
         }
 
         const updatedProduct = await ProductModel.updateProduct(newProduct, productId, conn);
-        await conn.end();
+       conn.release();
         res.status(200).json({
             success: true,
             message: [
@@ -113,7 +113,7 @@ export const editProduct = async (req, res, next) =>{
             ]
         })
     }catch(e){
-        await conn.end();
+        conn.release();
         next(e)
     }
 }
@@ -125,7 +125,7 @@ export const deleteProduct = async (req, res, next) =>{
     const conn = await connect();
     try{
         const deletedId = await ProductModel.deleteProduct(id, conn);
-        await conn.end();
+        conn.release();
         res.status(200).json({
             success: true,
             message: [
@@ -133,7 +133,7 @@ export const deleteProduct = async (req, res, next) =>{
             ]
         })
     }catch(e){
-        await conn.end();
+        conn.release();
         next(e);
     }
 }
