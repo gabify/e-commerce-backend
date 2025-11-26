@@ -10,6 +10,7 @@ import productRoutes from "./src/routers/ProductRoutes.js";
 import categoryRouters from "./src/routers/CategoryRoutes.js";
 import userRoutes from "./src/routers/UserRoutes.js";
 import cartRouter  from "./src/routers/CartRoutes.js";
+import orderRouter from "./src/routers/OrderRoutes.js";
 
 //initialize the app
 const app = express();
@@ -45,6 +46,7 @@ app.use('/product', productRoutes);
 app.use('/category', categoryRouters);
 app.use('/user', userRoutes);
 app.use('/cart', cartRouter);
+app.use('/order', orderRouter);
 
 //server upload folder
 app.use('/product/thumbnails', express.static(path.join(__dirname, "thumbnails")))

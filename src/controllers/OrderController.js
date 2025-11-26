@@ -97,3 +97,14 @@ export const checkout = async (req, res, next) =>{
         conn.release();
     }
 }
+
+export const fetchAllOrders = async(req, res, next) =>{
+    const conn = await connect();
+
+    const orders = await OrderModel.getAllOrders(conn);
+    conn.release();
+    res.status(200).json({
+        success: true,
+        message: orders
+    });
+}
