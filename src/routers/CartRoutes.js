@@ -8,7 +8,7 @@ const cartRouter = express.Router();
 cartRouter.use(authHandler);
 cartRouter.get('/all/:id', CartController.getCart);
 cartRouter.post('/new', CartController.addToCart);
-cartRouter.post('checkout', checkout);
+cartRouter.post('/checkout', checkout);
 cartRouter.put('/edit', CartController.updateCartItem);
 cartRouter.delete('/delete', CartController.deleteCartItem);
 
