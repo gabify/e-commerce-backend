@@ -1,10 +1,14 @@
 import * as CartModel from "../models/CartModel.js";
+import connect from "../config/db.js";
 
 export const addToCart = async (req, res, next) => {
     const {productId, userId, quantity} = req.body;
     
+    //get Connection
+    const conn = await connect();
     try{
-        const updatedCart = await CartModel.addItemToCart(productId, userId, quantity);
+        const updatedCart = await CartModel.addItemToCart(productId, userId, quantity, conn);
+        conn.release();
         res.status(201).json({
             success: true,
             message: [
@@ -13,6 +17,7 @@ export const addToCart = async (req, res, next) => {
             ]
         })
     }catch(e){
+        conn.release();
         next(e);
     }
 }
@@ -20,13 +25,18 @@ export const addToCart = async (req, res, next) => {
 export const getCart = async (req, res, next) =>{
     const userId = req.params.id;
 
+    //get Connection
+    const conn = await connect();
+
     try{
-        const cart = await CartModel.getCartItems(userId);
+        const cart = await CartModel.getCartItems(userId, conn);
+        conn.release();
         res.status(200).json({
             success: true,
             message: cart
         })
     }catch(e){
+        conn.release();
         next(e);
     }
 }
@@ -34,8 +44,11 @@ export const getCart = async (req, res, next) =>{
 export const updateCartItem = async(req, res, next) => {
     const {userId, cartId, quantity} = req.body;
 
+    //get Connection
+    const conn = await connect();
     try{
         const cart = await CartModel.updateCartItem(userId, cartId, quantity);
+        conn.release();
         res.status(200).json({
             success: true,
             message: [
@@ -44,6 +57,7 @@ export const updateCartItem = async(req, res, next) => {
             ]
         });
     }catch(e){
+        conn.release();
         next(e);
     }
 
@@ -52,8 +66,11 @@ export const updateCartItem = async(req, res, next) => {
 export const deleteCartItem = async(req, res, next) =>{
     const {userId, cartId} = req.body;
 
+    //get Connection
+    const conn = await connect();
     try{
         const cart = await CartModel.deleteCartItem(userId, cartId);
+        conn.release();
         res.status(200).json({
             success: true,
             message: [
@@ -62,6 +79,7 @@ export const deleteCartItem = async(req, res, next) =>{
             ]
         })
     }catch(e){
+        conn.release();
         next(e);
     }
 }

@@ -7,4 +7,9 @@ const pool = mysql.createPool({
     database: process.env.DATABASE
 });
 
-export default pool;
+
+const connect = async () =>{
+    return await pool.getConnection();
+}
+
+export default connect;

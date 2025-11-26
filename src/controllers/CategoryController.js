@@ -1,3 +1,4 @@
+import connect from "../config/db.js";
 import * as categoryModel from "../models/CategoryModel.js";
 
 export const fetchCategory = async(req, res) =>{
@@ -5,23 +6,31 @@ export const fetchCategory = async(req, res) =>{
     const limit = parseInt(req.query.limit) || 10;
     const search = req.query.search || '';
 
-    const categories = await categoryModel.getCategory(page, limit, search);
+    //get Connection
+    const conn = await connect();
+    const categories = await categoryModel.getCategory(page, limit, search, conn);
+    conn.release();
     res.status(200).json({success: true, message: categories});
 }
 
 export const fetchCategoryCount = async (req, res) =>{
     const search = req.query.search || '';
 
-    const total_categories = await categoryModel.getCategoryCount(search);
+    //get Connection
+    const conn = await connect();
+    const total_categories = await categoryModel.getCategoryCount(search, conn);
+    conn.release();
     res.status(200).json({success: true, message: [total_categories]})
 }
 
 export const fetchCategoryById = async(req, res, next) =>{
     const id = req.params.id || -1;
 
+    //get Connection
+    const conn = await connect();
     try{
-        const category = await categoryModel.getCategoryById(id);
-
+        const category = await categoryModel.getCategoryById(id, conn);
+        conn.release();
         if(category){
             res.status(200).json({success: true, message: [category]})
         }else{
@@ -30,6 +39,7 @@ export const fetchCategoryById = async(req, res, next) =>{
 
     }catch(err){
         console.log(err);
+        conn.release();
         next(err);
     }
 }
@@ -37,15 +47,19 @@ export const fetchCategoryById = async(req, res, next) =>{
 export const createCategory = async(req, res, next) => {
     const {name, description} = req.body;
 
+    //get Connection
+    const conn = await connect();
     try{
-        const id = await categoryModel.insertCategory(name, description);
+        const id = await categoryModel.insertCategory(name, description, conn);
+        conn.release();
         res.status(201).json({
             success: true,
             message: "New category successfully created",
             id
         })
     }catch(err){
-        next(err)
+        conn.release();
+        next(err);
     }
 }
 
@@ -53,14 +67,17 @@ export const createCategory = async(req, res, next) => {
 
 export const updateCategory = async (req, res, next) =>{
     const id = parseInt(req.params.id);
-
     const { name, description } = req.body;
 
+    //get Connection
+    const conn = await connect();
     try{
-        const updatedCategory = await categoryModel.updateCategory(name, description, id);
+        const updatedCategory = await categoryModel.updateCategory(name, description, id, conn);
+        conn.release();
         res.status(200).json({success: true, message: [{updatedCategory}]})
     }catch(err){
         console.log(err);
+        conn.release();
         next(err);
     }
 }
@@ -69,11 +86,15 @@ export const updateCategory = async (req, res, next) =>{
 export const removeCategoryById = async (req, res, next) =>{
     const id = parseInt(req.params.id) || -1;
 
+    //get Connection
+    const conn = await connect();
     try{
-        const deletedCategory = await categoryModel.updateAsInactive(id);
+        const deletedCategory = await categoryModel.updateAsInactive(id, conn);
+        conn.release();
         res.status(200).json({success: true, message: [{deletedCategory}]});
     }catch(err){
         console.log(err);
+        conn.release();
         next(err);
     }
 }
