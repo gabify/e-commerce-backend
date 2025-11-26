@@ -13,7 +13,7 @@ export const fetchProducts = async (req, res) =>{
     const conn = await connect();
     const [products, total] = await Promise.all([
         ProductModel.getProducts(page, limit, category_id, search, price_range, conn), 
-        ProductModel.getProductCount(conn)
+        ProductModel.getProductCount(category_id, search, price_range, conn)
     ]);
     conn.release();
 
