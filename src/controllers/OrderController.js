@@ -1,5 +1,5 @@
 import connect from "../config/db.js";
-import { getCartItems } from "../models/CartModel.js";
+import { validateCartItems, clearCart, getCartItems } from "../models/CartModel.js";
 import * as OrderModel from "../models/OrderModel.js";
 import { updateProduct } from "../models/ProductModel.js";
 import { doesUserExist } from "../models/UserModel.js";
@@ -28,7 +28,7 @@ export const checkout = async (req, res, next) =>{
         if(cart.length < 1) generateException('Error', 'Cart items not found', 404);
 
         //validate cart items
-        const validatedCartItems = await OrderModel.validateCartItems(cart, conn);
+        const validatedCartItems = await CartModel.validateCartItems(cart, conn);
 
         //calculate subtotal
         const subtotal = validatedCartItems.reduce((acc, item) => acc + (Number(item.quantity) * Number(item.product.price)), 0);
@@ -77,7 +77,7 @@ export const checkout = async (req, res, next) =>{
             }
         }
 
-        if(!OrderModel.clearCart(uId, conn)){
+        if(!CartModel.clearCart(uId, conn)){
             generateException('Error', 'Something went wrong', 500);
         }
 

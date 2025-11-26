@@ -156,3 +156,35 @@ export const deleteCartItem = async(userId, cartId, conn) =>{
 
     return getCartItems(uId, conn);
 }
+
+export const validateCartItems = async (cart = [], conn) =>{
+    if(cart.length === 0){
+        generateException('Error', 'Cart items not found', 404);
+    }
+
+    const validatedCartItem = await Promise.all(
+        cart.map(async(item) =>{
+            const product = await getProductById(item.product_id, conn);
+            if(!product) generateException('Error', 'Product not found', 404);
+            if(product.stock_quantity < item.quantity) generateException('Error', 'Insufficient stock', 400);
+
+            return {...item, product}
+        })
+    )
+
+    return validatedCartItem;
+}
+
+export const clearCart = async(userId = -1, conn) =>{
+    const uId = parseInt(userId);
+
+    if(!Number.isInteger(uId) || uId < 1){
+        generateException('TypeError', 'Invalid user id.', 400);
+    }
+
+    doesUserExist(uId, conn);
+
+    const [result] = await conn.query("DELETE FROM cart WHERE user_id = ?", [uId]);
+
+    return result.affectedRows ? true : false;
+}
