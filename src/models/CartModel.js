@@ -1,9 +1,8 @@
-import pool from "../config/db.js";
 import { getProductById } from "./ProductModel.js";
 import { doesUserExist } from "./UserModel.js";
 import generateException from "../utils/exceptionGenerator.js";
 
-const getCartByProductAndUser = async (productId= -1, userId = -1) =>{
+const getCartByProductAndUser = async (productId= -1, userId = -1, conn) =>{
     const pId =  Number(productId);
     const uId = Number(userId);
     
@@ -15,20 +14,20 @@ const getCartByProductAndUser = async (productId= -1, userId = -1) =>{
         generateException('TypeError', 'Invalid user id.', 400);
     }
 
-    const [item] = await pool.query('SELECT * FROM cart WHERE product_id = ? AND user_id = ?', [pId, uId]);
+    const [item] = await conn.query('SELECT * FROM cart WHERE product_id = ? AND user_id = ?', [pId, uId]);
 
     return item.length > 0 ? item[0] : null;
 }
 
-export const getCartItems = async(id = -1) =>{
+export const getCartItems = async(id = -1, conn) =>{
     const userId = Number(id);
     if(!Number.isInteger(userId) || userId < 1){
         generateException('TypeError', 'Invalid user id.', 400);
     }
 
-    await doesUserExist(userId);
+    await doesUserExist(userId, conn);
 
-    const [items] = await pool.query(
+    const [items] = await conn.query(
         `SELECT cart.id AS cart_id, 
         cart.product_id,
         cart.quantity,
@@ -44,7 +43,7 @@ export const getCartItems = async(id = -1) =>{
     return items;
 }
 
-export const addItemToCart = async(productId, userId, quantity) =>{
+export const addItemToCart = async(productId, userId, quantity, conn) =>{
     productId = parseInt(productId);
     userId = parseInt(userId);
     quantity = parseInt(quantity);
@@ -55,7 +54,7 @@ export const addItemToCart = async(productId, userId, quantity) =>{
     }
 
     //check if product exist
-    const product = await getProductById(productId);
+    const product = await getProductById(productId, conn);
     if(!product){
         generateException('Error', 'Product not found', 404);
     }
@@ -66,10 +65,10 @@ export const addItemToCart = async(productId, userId, quantity) =>{
     }
 
     //check if user exist
-    await doesUserExist(userId);
+    await doesUserExist(userId, conn);
 
     //check if product already exist in the user cart
-    const cartItem = await getCartByProductAndUser(productId, userId);
+    const cartItem = await getCartByProductAndUser(productId, userId, conn);
 
     if(cartItem){
 
@@ -79,21 +78,21 @@ export const addItemToCart = async(productId, userId, quantity) =>{
         }
 
         //Add quantiy if product exist in the cart
-        await pool.query("UPDATE cart SET quantity = quantity + ? WHERE product_id = ? AND user_id = ?", 
+        await conn.query("UPDATE cart SET quantity = quantity + ? WHERE product_id = ? AND user_id = ?", 
             [quantity, productId, userId]);
 
     }else{
         //Add new product to cart
-        await pool.query("INSERT INTO cart(user_id, product_id, quantity) VALUES(?,?,?)", 
+        await conn.query("INSERT INTO cart(user_id, product_id, quantity) VALUES(?,?,?)", 
         [userId, productId, quantity])
     }
 
-    return await getCartItems(userId);
+    return await getCartItems(userId, conn);
 
 
 }
 
-export const updateCartItem = async(userId = -1, cartId = -1, quantity = -1) =>{
+export const updateCartItem = async(userId = -1, cartId = -1, quantity = -1, conn) =>{
     const uId = parseInt(userId);
     const cId = parseInt(cartId);
     const q = parseInt(quantity);
@@ -110,15 +109,15 @@ export const updateCartItem = async(userId = -1, cartId = -1, quantity = -1) =>{
         generateException('TypeError', 'Invalid quantity.', 400);
     }
 
-    await doesUserExist(uId);
+    await doesUserExist(uId, conn);
 
-    const [item] = await pool.query("SELECT * FROM cart WHERE id = ? AND user_id = ?", [cId, uId]);
+    const [item] = await conn.query("SELECT * FROM cart WHERE id = ? AND user_id = ?", [cId, uId]);
     
     if(item.length === 0){
         generateException('Error', 'Cart item not found.', 404);
     }
 
-    const product = await getProductById(item[0].product_id);
+    const product = await getProductById(item[0].product_id, conn);
 
     if(!product){
         generateException('Error', 'Product not found', 404);
@@ -128,12 +127,12 @@ export const updateCartItem = async(userId = -1, cartId = -1, quantity = -1) =>{
         generateException('Error', 'Insufficient stock', 400);
     }
 
-    await pool.query("UPDATE cart SET quantity = ? WHERE id = ? AND user_id = ? ", [q, cId, uId]);
+    await conn.query("UPDATE cart SET quantity = ? WHERE id = ? AND user_id = ? ", [q, cId, uId]);
 
     return getCartItems(uId);
 }
 
-export const deleteCartItem = async(userId, cartId) =>{
+export const deleteCartItem = async(userId, cartId, conn) =>{
     const uId = parseInt(userId);
     const cId = parseInt(cartId);
 
@@ -145,15 +144,15 @@ export const deleteCartItem = async(userId, cartId) =>{
         generateException('TypeError', 'Invalid cart id.', 400);
     }
     
-    await doesUserExist(uId);
+    await doesUserExist(uId, conn);
 
-    const [item] = await pool.query("SELECT * FROM cart WHERE id = ? AND user_id = ?", [cId, uId]);
+    const [item] = await conn.query("SELECT * FROM cart WHERE id = ? AND user_id = ?", [cId, uId]);
     
     if(item.length === 0){
         generateException('Error', 'Cart item not found.', 404);
     }
 
-    await pool.query("DELETE FROM cart WHERE id = ? AND user_id = ?", [cId, uId]);
+    await conn.query("DELETE FROM cart WHERE id = ? AND user_id = ?", [cId, uId]);
 
-    return getCartItems(uId);
+    return getCartItems(uId, conn);
 }

@@ -1,11 +1,14 @@
+import connect from "../config/db.js";
 import * as UserModel from "../models/UserModel.js"
-
 
 export const register = async (req, res, next) =>{
     const {name, email, password} = req.body;
-
+    
+    //get Connection
+    const conn = await connect();
     try{
-        const user = await UserModel.createUser(name, email, password);
+        const user = await UserModel.createUser(name, email, password, conn);
+        await conn.end();
         res.status(201).json({
             success: true,
             message: [
@@ -13,6 +16,7 @@ export const register = async (req, res, next) =>{
             ]
         });
     }catch(e){
+        await conn.end();
         next(e);
     }
 }
@@ -20,8 +24,11 @@ export const register = async (req, res, next) =>{
 export const login = async (req, res, next) =>{
     const {email, password} = req.body;
 
+    //get Connection
+    const conn = await connect();
     try{
-        const token = await UserModel.login(email, password);
+        const token = await UserModel.login(email, password, conn);
+        await conn.end();
         res.status(200).json({
             success: true,
             message: [
@@ -30,6 +37,7 @@ export const login = async (req, res, next) =>{
             ]
         });
     }catch(e){
+        await conn.end();
         next(e);
     }
 }

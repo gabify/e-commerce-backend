@@ -1,4 +1,6 @@
+import connect from "../config/db.js";
 import * as ProductModel from "../models/ProductModel.js";
+
 
 export const fetchProducts = async (req, res) =>{
     const page = parseInt(req.query.page) || 1;
@@ -7,10 +9,13 @@ export const fetchProducts = async (req, res) =>{
     const search = req.query.search || '';
     const price_range = parseInt(req.query.range) || 0;
 
+    //get Connection
+    const conn = await connect();
     const [products, total] = await Promise.all([
-        ProductModel.getProducts(page, limit, category_id, search, price_range), 
-        ProductModel.getProductCount()
+        ProductModel.getProducts(page, limit, category_id, search, price_range, conn), 
+        ProductModel.getProductCount(conn)
     ]);
+    await conn.end();
 
     res.status(200).json({
         success: true, 
@@ -27,15 +32,21 @@ export const fetchProductCount = async (req, res) =>{
     const search = req.query.search || '';
     const price_range = parseInt(req.query.range) || 0;
 
-    const total_products = await ProductModel.getProductCount(limit, category_id, search, price_range);
+    //get Connection
+    const conn = await connect();
+    const total_products = await ProductModel.getProductCount(limit, category_id, search, price_range, conn);
+    await conn.end();
     res.status(200).json({success: true, message: [total_products]})
 }
 
 export const fetchProductById = async (req, res, next) =>{
     const id = parseInt(req.params.id) || -1;
 
+    //get Connection
+    const conn = await connect();
     try{
-        const product = await ProductModel.getProductById(id);
+        const product = await ProductModel.getProductById(id, conn);
+        await conn.end();
 
         if(product){
             res.status(200).json({success: true, message: [product]});
@@ -45,6 +56,7 @@ export const fetchProductById = async (req, res, next) =>{
 
     }catch(err){
         console.log(err);
+        await conn.end();
         next(err);
     }
 }
@@ -57,7 +69,10 @@ export const createProduct = async (req, res, next) =>{
         const thumbnail = file ? file.filename : null;
         const product = {name, description, price, stock_quantity, category_id, thumbnail}
 
-        const insertId = await ProductModel.insertProduct(product);
+        //get Connection
+        const conn = await connect();
+        const insertId = await ProductModel.insertProduct(product, conn);
+        await conn.end();
         res.status(200).json({
           success: true, 
           message: [
@@ -68,15 +83,18 @@ export const createProduct = async (req, res, next) =>{
         });
 
     }catch(e){
+        await conn.end();
         next(e);
     }
 }
 
 export const editProduct = async (req, res, next) =>{
-    try{   
-        const productId = parseInt(req.params.id);
-        const file = req.file;
+    const productId = parseInt(req.params.id);
+    const file = req.file;
 
+    //get Connection
+    const conn = await connect();
+    try{   
         const newProduct = {
             name: req.body.name,
             description: req.body.description,
@@ -86,7 +104,8 @@ export const editProduct = async (req, res, next) =>{
             thumbnail: file ? file.filename : undefined
         }
 
-        const updatedProduct = await ProductModel.updateProduct(newProduct, productId);
+        const updatedProduct = await ProductModel.updateProduct(newProduct, productId, conn);
+        await conn.end();
         res.status(200).json({
             success: true,
             message: [
@@ -94,15 +113,19 @@ export const editProduct = async (req, res, next) =>{
             ]
         })
     }catch(e){
+        await conn.end();
         next(e)
     }
 }
 
 export const deleteProduct = async (req, res, next) =>{
-    try{
-        const id = parseInt(req.params.id);
+    const id = parseInt(req.params.id);
 
-        const deletedId = await ProductModel.deleteProduct(id);
+    //get Connection
+    const conn = await connect();
+    try{
+        const deletedId = await ProductModel.deleteProduct(id, conn);
+        await conn.end();
         res.status(200).json({
             success: true,
             message: [
@@ -110,6 +133,7 @@ export const deleteProduct = async (req, res, next) =>{
             ]
         })
     }catch(e){
+        await conn.end();
         next(e);
     }
 }
