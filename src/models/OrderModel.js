@@ -12,7 +12,7 @@ export const getAllOrders = async (page= 1, limit= 10, status= '', name='', paym
         order_details.payment_method 
         FROM order_details LEFT JOIN user 
         ON order_details.user_id = user.id 
-        WHERE 1 = 1`;
+        WHERE 1 = 1 `;
     
     const params = [];
 
@@ -123,6 +123,36 @@ export const getOrderItemsById = async(id= -1, conn) =>{
     return result[0];
 }
 
+export const updateOrderStatus = async(orderId = -1, status='', conn) =>{
+    const oId = parseInt(orderId);
+
+    if(!Number.isInteger(oId) || oId < 1){
+        generateException('TypeError', 'Invalid order id.', 400);
+    }
+
+    const allowedStatus = [
+        'pending', 
+        'processing', 
+        'on the way', 
+        'delivered', 
+        'cancelled', 
+        'completed'
+    ];
+
+    if(!allowedStatus.includes(status)){
+        generateException('Error', 'Unknown status', 400);
+    }
+
+    const [[order]] = await conn.query("SELECT * FROM order_details WHERE id = ?", [oId]);
+
+    if(!order){
+        generateException('Error', 'Order not found', 404);
+    }
+
+    const [{affectedRows}] = await conn.query(`UPDATE order_details SET status = '${status}' WHERE id = ?`, [oId]);
+    return affectedRows;
+}
+
 //For user
 export const getAllOrdersByUser = async (userId = -1, page= 1, limit= 10, status= '', conn) =>{
     const offset = (page - 1) * limit;
@@ -195,22 +225,6 @@ export const getAllOrdersCountByUser = async (userId = -1, status= '', conn) =>{
         params.push(status);
     }
 
-    if(name){
-        query += 'AND user.name LIKE ? ';
-        params.push(`%${name}%`);
-    }
-
-    const allowedPaymentMethods = [
-        'COD',
-        'e-wallet',
-        'credit/debit card',
-    ];
-
-    if(allowedPaymentMethods.includes(paymentMethod)){
-        query += 'AND order_details.payment_method = ? ';
-        params.push(paymentMethod);
-    }
-
     const [[{total}]] = await conn.query(query, params);
     return total;
 }
@@ -250,6 +264,35 @@ export const getOrderItemsByOrderAndUser = async(orderId= -1, userId = -1, conn)
     return result[0];
 }
 
+export const cancelOrder = async(userId= -1, orderId= -1, conn) =>{
+    const uId = parseInt(userId);
+    const oId = parseInt(orderId);
+
+    if(!Number.isInteger(uId) || uId < 1){
+        generateException('TypeError', 'Invalid user id.', 400);
+    }
+
+    if(!Number.isInteger(oId) || oId < 1){
+        generateException('TypeError', 'Invalid order id.', 400);
+    }
+
+    doesUserExist(uId, conn);
+
+    const [[order]] = await conn.query("SELECT * FROM order_details WHERE id = ? AND user_id = ?", [oId, uId]);
+
+    if(!order){
+        generateException('Error', 'Order not found.', 404);
+    }
+
+    if(order.status !== 'pending'){
+        generateException('Error', `Unable to cancel your order. Your order no.${order.id} is ${order.status}.`, 400);
+    }
+
+    const [{affectedRows}] = await conn.query("UPDATE order_details SET status = 'cancelled' WHERE id = ? AND user_id = ?", [oId, uId]);
+
+    return affectedRows;
+}
+
 
 //For creating new order
 export const createNewOrder = async (orderDetails, conn) =>{
@@ -271,7 +314,6 @@ export const createNewOrder = async (orderDetails, conn) =>{
 
     return result.insertId;
 }
-
 
 export const createOrderItem = async (orderItem, conn) =>{
     const [result] = await conn.query('INSERT INTO order_item(order_id, product_id, quantity, price_at_time) VALUES(?,?,?,?)',

@@ -98,13 +98,138 @@ export const checkout = async (req, res, next) =>{
     }
 }
 
+//For admin
 export const fetchAllOrders = async(req, res, next) =>{
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const name = req.query.name || '';
+    const status = req.query.status || '';
+    const paymentMethod = req.query.payment_method || '';
+
     const conn = await connect();
 
-    const orders = await OrderModel.getAllOrders(conn);
+    const [orders, count] = await Promise.all([
+        OrderModel.getAllOrders(page,limit, status, name, paymentMethod, conn),
+        OrderModel.getAllOrdersCount(status, name, paymentMethod, conn)
+    ]);
     conn.release();
     res.status(200).json({
         success: true,
-        message: orders
+        message: [
+            orders,
+            {total_page: Math.ceil(count/limit)}
+        ]
     });
+}
+
+export const fetchOrderItemsByOrderId = async (req, res, next) =>{
+    const {orderId} = req.params.orderId;
+
+    const conn = await connect();
+    try{
+        const order = await OrderModel.getOrderItemsById(orderId, conn);
+        conn.release();
+        res.status(200).json({
+            success: true,
+            message: [
+                order
+            ]
+        })
+    }catch(e){
+        conn.release();
+        next();
+    }
+
+}
+
+export const adminUpdateOrderStatus = async (req, res, next) =>{
+    const {status} = req.body;
+    const orderId = req.params.orderId;
+
+    const conn = await connect();
+
+    try{
+        await OrderModel.updateOrderStatus(orderId, status, conn);
+        conn.release();
+        res.status(200).json({
+            success: true,
+            message: [
+                {result: `Order no. ${orderId} has been updated successfully`}
+            ]
+        });
+    }catch(e){
+        conn.release();
+        next(e);
+    }
+}
+
+//For user
+export const userFetchOrders = async (req, res, next) =>{
+    const userId = parseInt(req.params.userId);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const status = req.query.status || '';
+
+    const conn = await connect();
+
+    try{
+        const [orders, count] = await Promise.all([
+            OrderModel.getAllOrdersByUser(userId, page, limit, status, conn),
+            OrderModel.getAllOrdersCountByUser(userId, status, conn)
+        ]);
+
+        conn.release();
+        res.status(200).json({
+            success: true,
+            message: [
+                orders,
+                {total_page: Math.ceil(count/limit)}
+            ]
+        });
+    }catch(e){
+        conn.release();
+        next(e);
+    }
+}
+
+export const userFetchOrderItems = async (req, res, next) =>{
+    const userId = req.query.userId;
+    const orderId = req.query.orderId;
+
+    const conn = await connect();
+
+    try{
+        const orderItems = await OrderModel.getOrderItemsByOrderAndUser(orderId, userId, conn);
+        conn.release();
+        res.status(200).json({
+            success: true,
+            message: [
+                orderItems
+            ]
+        });
+    }catch(e){
+        conn.release();
+        next(e);
+    }
+}
+
+export const cancelOrder = async (req, res, next) =>{
+    const userId = req.query.userId;
+    const orderId = req.query.orderId;
+
+    const conn = await connect();
+
+    try{
+        await OrderModel.cancelOrder(userId, orderId, conn);
+        conn.release();
+        res.status(200).json({
+            success: true,
+            message: [
+                {result: `Order no. ${orderId} has been updated cancelled`}
+            ]
+        });
+    }catch(e){
+        conn.release();
+        next(e);
+    }
 }
