@@ -131,89 +131,60 @@ It is built using Node.js, Express, and MySQL, and follows MVC architecture with
   USER=root
   DBPASSWORD=yourpassword
   DATABASE=ecommerce
-  JWT_SECRET=your_jwt_secret
+  SECRET=your_jwt_secret
   PORT=5000
   ```
 
 6. Start the server
-npm start
+  ```bash
+  npm start
+  ```
 
-📚 API Overview
-Authentication
-Method	Endpoint	Description
-POST	/auth/register	Register new user
-POST	/auth/login	Login user
-POST	/auth/logout	(frontend handles token removal)
-Categories
-Method	Endpoint	Description
-GET	/category	Get all categories
-GET	/category/:id	Get category by ID
-POST	/category	Add new category
-PUT	/category/:id	Update category
-DELETE	/category/:id	Soft delete
-Products
-Method	Endpoint	Description
-GET	/product	Fetch products (pagination, search, category filter)
-GET	/product/:id	Fetch product by ID
-POST	/product	Add product
-PUT	/product/:id	Update product
-DELETE	/product/:id	Delete product
-Cart
-Method	Endpoint	Description
-GET	/cart/:userId	Get cart items
-POST	/cart	Add item to cart
-PUT	/cart	Update cart item quantity
-DELETE	/cart/:userId/:cartId	Delete item from cart
-Checkout & Orders
-Method	Endpoint	Description
-POST	/checkout	Complete checkout
-GET	/orders/:userId	Fetch user orders
-🔒 Error Response Format
+## 📚 API Overview
 
-All errors follow a consistent structure:
+### Authentication
+| Method	       |  Endpoint	          |  Description                     |
+|----------------|----------------------|----------------------------------|
+| POST	         | /auth/register       |	Register new user                |
+| POST           | /auth/login          |	Login user                       |
 
-{
-  "error": true,
-  "message": "Invalid user id.",
-  "statusCode": 400
-}
+### Categories
+| Method	       |  Endpoint	          |  Description                      |
+|----------------|----------------------|-----------------------------------|
+| GET  	         | /category            |	Get all categories                |
+| GET            | /category/:id        |	Get category by ID                |
+| PUT            | /category/:id        |	Update category                   |
+| DELETE         | /category/:id        |	Soft delete                       |
 
-🧪 Testing Your Backend
+### Products
+| Method	       |  Endpoint	          |  Description                      |
+|----------------|----------------------|-----------------------------------|
+| GET  	         | /product             |	Get all products                  |
+| GET            | /product/:id         |	Get product by ID                 |
+| POST           | /product             |	Add product                       |
+| PUT            | /product/:id         |	Update product                    |
+| DELETE         | /product/:id         |	Delete product                    |
 
-You can test using:
+### Cart
+| Method	       |  Endpoint	          |  Description                      |
+|----------------|----------------------|-----------------------------------|
+| GET  	         | /cart/:userId        |	Get cart items                    |
+| POST           | /cart                |	Add items to cart                 |
+| PUT            | /cart                |	Update cart item quantity         |
+| DELETE         | /cart/:userId/:cartId|	Delete item from cart             |
 
-Postman
+### Checkout & Orders
+| Method	       |  Endpoint	          |  Description                      |
+|----------------|----------------------|-----------------------------------|
+| POST  	       | /checkout            |	Complete checkout                 |
+| GET            | /order/:userId       |	Fetch user orders                 |
 
-Thunder Client (VS Code)
+## 📌 Future Improvements
 
-Insomnia
-
-SQL tools like MySQL Workbench / DBeaver
-
-Supports full testing of:
-
-Product management
-
-Authentication
-
-Cart operations
-
-Checkout + transaction
-
-File uploads via Multer
-
-📌 Future Improvements (Optional)
-
-Email verification
-
-Refresh tokens
-
-Failed orders handling
-
-Admin dashboard
-
-Reviews & ratings
-
-Coupon system
-
-Payment gateway integration
+- Email verification
+- Refresh tokens
+- Failed orders handling
+- Admin dashboard
+- Reviews & ratings
+- Coupon system
+- Payment gateway integration
