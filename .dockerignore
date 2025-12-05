@@ -1,0 +1,20 @@
+# Ignore node_modules directory
+node_modules/
+thumbnails/
+
+# Ignore all log files
+*.log
+
+# Ignore the .git directory
+.git/
+
+# Ignore temporary build files
+tmp/
+build/
+
+# Ignore specific file
+.env
+.gitignore
+
+# Exclude all markdown files
+*.md
