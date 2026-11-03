@@ -1,0 +1,1 @@
+console.log("Hello, Miguel! This is your controller file.");
